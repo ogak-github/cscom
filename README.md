@@ -1,4 +1,4 @@
-# sysmon-agent
+# Control System Commander (CSCom)
 
 A lightweight system monitoring agent for Linux servers. Monitors CPU, RAM, disk, network, processes, and Docker containers in real-time.
 
@@ -44,14 +44,14 @@ bun run src/transport/server.ts
 ### Quick Install (VPS)
 
 ```bash
-git clone https://github.com/ogak-github/sysmon-agent /opt/sysmon-agent
-cd /opt/sysmon-agent
+git clone https://github.com/ogak-github/cscom /opt/cscom
+cd /opt/cscom
 bash setup.sh
 ```
 
 This will:
 1. Install Bun (if not present)
-2. Copy project to `/opt/sysmon-agent`
+2. Copy project to `/opt/cscom`
 3. Install production dependencies
 4. Create and start a systemd service
 
@@ -66,8 +66,8 @@ export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
 
 # Clone and install
-git clone https://github.com/ogak-github/sysmon-agent /opt/sysmon-agent
-cd /opt/sysmon-agent
+git clone https://github.com/ogak-github/cscom /opt/cscom
+cd /opt/cscom
 bun install
 
 # Run terminal mode
@@ -84,45 +84,45 @@ Environment variables (set in systemd service or `.env`):
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `PORT` | `4040` | Web server port |
-| `SYSMON_KEY` | (empty) | API key for authentication. If empty, auth is disabled |
+| `CSCOM_KEY` | (empty) | API key for authentication. If empty, auth is disabled |
 
 ### Setting API Key
 
 Edit the systemd service:
 
 ```bash
-sudo nano /etc/systemd/system/sysmon-agent.service
+sudo nano /etc/systemd/system/cscom.service
 ```
 
 Add or modify:
 
 ```
-Environment=SYSMON_KEY=your-secret-key
+Environment=CSCOM_KEY=your-secret-key
 ```
 
 Then restart:
 
 ```bash
-sudo systemctl restart sysmon-agent
+sudo systemctl restart cscom
 ```
 
 ## Systemd Service
 
-The setup script creates a systemd service at `/etc/systemd/system/sysmon-agent.service`.
+The setup script creates a systemd service at `/etc/systemd/system/cscom.service`.
 
 Useful commands:
 
 ```bash
-sudo systemctl status sysmon-agent     # Check status
-sudo systemctl restart sysmon-agent    # Restart
-sudo systemctl stop sysmon-agent       # Stop
-sudo journalctl -u sysmon-agent -f     # View logs
+sudo systemctl status cscom     # Check status
+sudo systemctl restart cscom    # Restart
+sudo systemctl stop cscom       # Stop
+sudo journalctl -u cscom -f     # View logs
 ```
 
 ## Project Structure
 
 ```
-sysmon-agent/
+cscom/
 ├── index.ts                 # Terminal UI entry point
 ├── setup.sh                 # VPS installer script
 ├── src/

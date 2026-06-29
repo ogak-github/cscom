@@ -1,10 +1,10 @@
 #!/bin/bash
 set -e
 
-INSTALL_DIR="/opt/sysmon-agent"
-SERVICE_NAME="sysmon-agent"
+INSTALL_DIR="/opt/cscom"
+SERVICE_NAME="cscom"
 
-echo "=== sysmon-agent installer ==="
+echo "=== Control System Commander (CSCom) installer ==="
 
 # Install Bun
 if ! command -v bun &> /dev/null; then
@@ -31,7 +31,7 @@ bun install --production
 echo "[4/4] Creating systemd service..."
 sudo tee /etc/systemd/system/${SERVICE_NAME}.service > /dev/null <<EOF
 [Unit]
-Description=Sysmon System Monitor
+Description=Control System Commander (CSCom)
 After=network.target docker.service
 
 [Service]
@@ -41,7 +41,7 @@ ExecStart=${HOME}/.bun/bin/bun run src/transport/server.ts
 Restart=always
 RestartSec=5
 Environment=PORT=4040
-Environment=SYSMON_KEY=
+Environment=CSCOM_KEY=
 
 [Install]
 WantedBy=multi-user.target
@@ -56,6 +56,6 @@ echo "Dashboard: http://$(hostname -I | awk '{print $1}'):4040"
 echo "API:       http://$(hostname -I | awk '{print $1}'):4040/api/metrics"
 echo ""
 echo "To set API key:"
-echo "  Edit /etc/systemd/system/sysmon-agent.service"
-echo "  Add: Environment=SYSMON_KEY=your-secret-key"
-echo "  Then: sudo systemctl restart sysmon-agent"
+echo "  Edit /etc/systemd/system/cscom.service"
+echo "  Add: Environment=CSCOM_KEY=your-secret-key"
+echo "  Then: sudo systemctl restart cscom"

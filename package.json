@@ -1,5 +1,5 @@
 {
-  "name": "sysmon-agent",
+  "name": "cscom",
   "module": "index.ts",
   "type": "module",
   "private": true,

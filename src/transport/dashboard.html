@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>sysmon</title>
+  <title>CSCom - Control System Commander</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: #0a0a0a; color: #e0e0e0; font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', monospace; font-size: 13px; padding: 16px; }
@@ -53,7 +53,7 @@
 <body>
   <div id="auth-overlay" class="active">
     <div class="auth-box">
-      <h2>sysmon</h2>
+      <h2>CSCom</h2>
       <p>Enter API key to continue</p>
       <input type="password" id="auth-key" placeholder="API Key" autofocus>
       <button id="auth-submit">Connect</button>
@@ -62,7 +62,7 @@
   </div>
 
   <div id="dashboard" style="display:none;">
-    <h1>sysmon</h1>
+    <h1>CSCom</h1>
     <div class="subtitle"><span class="status disconnected" id="status"></span> Connecting...</div>
 
     <div class="grid">
@@ -113,7 +113,7 @@
     const authSubmit = document.getElementById("auth-submit");
     const authError = document.getElementById("auth-error");
 
-    let apiKey = sessionStorage.getItem("sysmon_key") || "";
+    let apiKey = sessionStorage.getItem("cscom_key") || "";
 
     function fmt(bytes) {
       if (bytes === 0) return "0 B";
@@ -255,7 +255,7 @@
       const key = authKeyInput.value.trim();
       if (!key) return;
       apiKey = key;
-      sessionStorage.setItem("sysmon_key", key);
+      sessionStorage.setItem("cscom_key", key);
       showDashboard();
     });
 

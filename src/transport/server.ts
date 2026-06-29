@@ -6,7 +6,7 @@ import { getSwapInfo } from "../metrics/ram";
 import { isDockerAvailable, getContainerStats } from "../metrics/docker";
 
 const PORT = parseInt(process.env.PORT || "4040", 10);
-const API_KEY = process.env.SYSMON_KEY || "";
+const API_KEY = process.env.CSCOM_KEY || "";
 const AUTH_ENABLED = API_KEY.length > 0;
 const dockerAvailable = await isDockerAvailable();
 
@@ -159,12 +159,12 @@ async function broadcast() {
 
 setInterval(broadcast, 1000);
 
-console.log(`sysmon API running at http://localhost:${PORT}`);
+console.log(`cscom API running at http://localhost:${PORT}`);
 console.log(`  Dashboard: http://localhost:${PORT}/`);
 console.log(`  REST API:  http://localhost:${PORT}/api/metrics`);
 console.log(`  WebSocket: ws://localhost:${PORT}/ws`);
 if (AUTH_ENABLED) {
-  console.log(`  Auth:      ENABLED (SYSMON_KEY set)`);
+  console.log(`  Auth:      ENABLED (CSCOM_KEY set)`);
 } else {
-  console.log(`  Auth:      DISABLED (set SYSMON_KEY to enable)`);
+  console.log(`  Auth:      DISABLED (set CSCOM_KEY to enable)`);
 }

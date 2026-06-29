@@ -44,7 +44,7 @@ async function render() {
   const processes = await getProcessList(5);
 
   const lines: string[] = [];
-  lines.push(`\x1b[1m\x1b[36msysmon\x1b[0m \x1b[90m${formatTime()}\x1b[0m  Refresh: ${REFRESH_INTERVAL_MS}ms  Press Ctrl+C to exit`);
+  lines.push(`\x1b[1m\x1b[36mcscom\x1b[0m \x1b[90m${formatTime()}\x1b[0m  Refresh: ${REFRESH_INTERVAL_MS}ms  Press Ctrl+C to exit`);
   lines.push(`${"─".repeat(60)}`);
 
   lines.push(`\x1b[1m Platform\x1b[0m   ${sysInfo.platform} (${sysInfo.arch})  ${sysInfo.hostname}`);
