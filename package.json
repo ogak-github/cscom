@@ -1,0 +1,20 @@
+{
+  "name": "sysmon",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "bun run index.ts",
+    "serve": "bun run src/transport/server.ts",
+    "typecheck": "tsgo --noEmit",
+    "build": "tsgo -p tsconfig.json",
+    "start": "bun run dist/index.js"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@typescript/native-preview": "^7.0.0-dev.20260628.1"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}

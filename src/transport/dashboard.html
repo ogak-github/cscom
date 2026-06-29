@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>sysmon</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #0a0a0a; color: #e0e0e0; font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', monospace; font-size: 13px; padding: 16px; }
+    h1 { color: #22d3ee; font-size: 18px; margin-bottom: 4px; }
+    .subtitle { color: #666; font-size: 12px; margin-bottom: 16px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+    .card { background: #111; border: 1px solid #222; border-radius: 8px; padding: 14px; }
+    .card h2 { color: #22d3ee; font-size: 13px; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
+    .row { display: flex; justify-content: space-between; padding: 3px 0; }
+    .row .label { color: #888; }
+    .row .value { color: #e0e0e0; }
+    .bar-wrap { background: #222; border-radius: 4px; height: 18px; overflow: hidden; margin: 6px 0; position: relative; }
+    .bar-fill { height: 100%; border-radius: 4px; transition: width 0.3s ease; }
+    .bar-fill.green { background: linear-gradient(90deg, #22c55e, #16a34a); }
+    .bar-fill.yellow { background: linear-gradient(90deg, #eab308, #ca8a04); }
+    .bar-fill.red { background: linear-gradient(90deg, #ef4444, #dc2626); }
+    .bar-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 11px; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.8); }
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; color: #666; font-weight: normal; padding: 4px 8px; border-bottom: 1px solid #222; font-size: 11px; text-transform: uppercase; }
+    td { padding: 4px 8px; border-bottom: 1px solid #1a1a1a; }
+    tr:hover td { background: #1a1a1a; }
+    .status { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+    .status.connected { background: #22c55e; }
+    .status.disconnected { background: #ef4444; }
+    .network-row { display: flex; align-items: center; padding: 4px 0; border-bottom: 1px solid #1a1a1a; }
+    .network-row .name { width: 120px; color: #22d3ee; }
+    .network-row .stats { flex: 1; display: flex; gap: 16px; }
+    .network-row .rx { color: #22c55e; }
+    .network-row .tx { color: #a78bfa; }
+    .bar-label { font-size: 11px; color: #888; margin-bottom: 4px; }
+    .bar-label span { color: #22d3ee; font-weight: bold; }
+    .wide { grid-column: 1 / -1; }
+    @media (max-width: 800px) { .grid { grid-template-columns: 1fr; } }
+
+    #auth-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0a0a0a; z-index: 100; justify-content: center; align-items: center; }
+    #auth-overlay.active { display: flex; }
+    .auth-box { background: #111; border: 1px solid #222; border-radius: 12px; padding: 32px; width: 340px; }
+    .auth-box h2 { color: #22d3ee; font-size: 16px; margin-bottom: 8px; text-transform: none; letter-spacing: normal; }
+    .auth-box p { color: #666; font-size: 12px; margin-bottom: 16px; }
+    .auth-box input { width: 100%; padding: 10px 12px; background: #1a1a1a; border: 1px solid #333; border-radius: 6px; color: #e0e0e0; font-family: inherit; font-size: 13px; margin-bottom: 12px; outline: none; }
+    .auth-box input:focus { border-color: #22d3ee; }
+    .auth-box button { width: 100%; padding: 10px; background: #22d3ee; color: #0a0a0a; border: none; border-radius: 6px; font-family: inherit; font-size: 13px; font-weight: bold; cursor: pointer; }
+    .auth-box button:hover { background: #06b6d4; }
+    .auth-error { color: #ef4444; font-size: 12px; margin-top: 8px; display: none; }
+  </style>
+</head>
+<body>
+  <div id="auth-overlay" class="active">
+    <div class="auth-box">
+      <h2>sysmon</h2>
+      <p>Enter API key to continue</p>
+      <input type="password" id="auth-key" placeholder="API Key" autofocus>
+      <button id="auth-submit">Connect</button>
+      <div class="auth-error" id="auth-error">Invalid key</div>
+    </div>
+  </div>
+
+  <div id="dashboard" style="display:none;">
+    <h1>sysmon</h1>
+    <div class="subtitle"><span class="status disconnected" id="status"></span> Connecting...</div>
+
+    <div class="grid">
+      <div class="card">
+        <h2>System</h2>
+        <div id="system"></div>
+      </div>
+      <div class="card">
+        <h2>CPU</h2>
+        <div id="cpu-bar" class="bar-wrap"><div class="bar-fill green" id="cpu-fill"></div><div class="bar-text" id="cpu-text">0%</div></div>
+        <div id="cpu"></div>
+      </div>
+      <div class="card">
+        <h2>Memory</h2>
+        <div class="bar-label"><span>RAM</span></div>
+        <div id="mem-bar" class="bar-wrap"><div class="bar-fill green" id="mem-fill"></div><div class="bar-text" id="mem-text">0%</div></div>
+        <div id="mem"></div>
+        <div id="swap-section" style="display:none; margin-top:10px; padding-top:10px; border-top:1px solid #222;">
+          <div class="bar-label"><span>Swap</span></div>
+          <div id="swap-bar" class="bar-wrap"><div class="bar-fill green" id="swap-fill"></div><div class="bar-text" id="swap-text">0%</div></div>
+          <div id="swap"></div>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Disk</h2>
+        <div id="disk"></div>
+      </div>
+      <div class="card wide">
+        <h2>Network</h2>
+        <div id="net"></div>
+      </div>
+      <div class="card wide" id="docker-card" style="display:none;">
+        <h2>Docker Containers</h2>
+        <div id="docker"></div>
+      </div>
+      <div class="card wide">
+        <h2>Processes</h2>
+        <div id="proc"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const statusEl = document.getElementById("status");
+    const authOverlay = document.getElementById("auth-overlay");
+    const dashboardEl = document.getElementById("dashboard");
+    const authKeyInput = document.getElementById("auth-key");
+    const authSubmit = document.getElementById("auth-submit");
+    const authError = document.getElementById("auth-error");
+
+    let apiKey = sessionStorage.getItem("sysmon_key") || "";
+
+    function fmt(bytes) {
+      if (bytes === 0) return "0 B";
+      const u = ["B","KB","MB","GB","TB"];
+      let i = 0, b = bytes;
+      while (b >= 1024 && i < u.length - 1) { b /= 1024; i++; }
+      return b.toFixed(2) + " " + u[i];
+    }
+
+    function barColor(pct) {
+      if (pct > 90) return "red";
+      if (pct > 70) return "yellow";
+      return "green";
+    }
+
+    function render(data) {
+      document.getElementById("system").innerHTML = `
+        <div class="row"><span class="label">Platform</span><span class="value">${data.system.platform} (${data.system.arch})</span></div>
+        <div class="row"><span class="label">Hostname</span><span class="value">${data.system.hostname}</span></div>
+        <div class="row"><span class="label">Uptime</span><span class="value">${Math.floor(data.system.uptime/86400)}d ${Math.floor((data.system.uptime%86400)/3600)}h ${Math.floor((data.system.uptime%3600)/60)}m</span></div>
+        <div class="row"><span class="label">CPU</span><span class="value">${data.system.cpuModel}</span></div>
+        <div class="row"><span class="label">Cores</span><span class="value">${data.system.cpuCount}</span></div>
+        <div class="row"><span class="label">Load Avg</span><span class="value">${data.system.loadAverage.map(v=>v.toFixed(2)).join(", ")}</span></div>
+      `;
+
+      const cpuPct = data.cpu.usagePercent;
+      document.getElementById("cpu-fill").style.width = cpuPct + "%";
+      document.getElementById("cpu-fill").className = "bar-fill " + barColor(cpuPct);
+      document.getElementById("cpu-text").textContent = cpuPct + "%";
+
+      const memPct = data.memory.usagePercent;
+      document.getElementById("mem-fill").style.width = memPct + "%";
+      document.getElementById("mem-fill").className = "bar-fill " + barColor(memPct);
+      document.getElementById("mem-text").textContent = memPct + "%";
+
+      document.getElementById("mem").innerHTML = `
+        <div class="row"><span class="label">Used</span><span class="value">${fmt(data.memory.used)}</span></div>
+        <div class="row"><span class="label">Free</span><span class="value">${fmt(data.memory.free)}</span></div>
+        <div class="row"><span class="label">Total</span><span class="value">${fmt(data.memory.total)}</span></div>
+      `;
+
+      const swapSection = document.getElementById("swap-section");
+      if (data.swap) {
+        swapSection.style.display = "block";
+        const swapPct = data.swap.usagePercent;
+        document.getElementById("swap-fill").style.width = swapPct + "%";
+        document.getElementById("swap-fill").className = "bar-fill " + barColor(swapPct);
+        document.getElementById("swap-text").textContent = swapPct + "%";
+        document.getElementById("swap").innerHTML = `
+          <div class="row"><span class="label">Used</span><span class="value">${fmt(data.swap.used)}</span></div>
+          <div class="row"><span class="label">Free</span><span class="value">${fmt(data.swap.free)}</span></div>
+          <div class="row"><span class="label">Total</span><span class="value">${fmt(data.swap.total)}</span></div>
+        `;
+      } else {
+        swapSection.style.display = "none";
+      }
+
+      document.getElementById("disk").innerHTML = data.disk.map(d => `
+        <div style="margin-bottom:8px;">
+          <div class="row"><span class="label">${d.mountPoint}</span><span class="value">${d.usagePercent}%  ${fmt(d.used)} / ${fmt(d.total)}</span></div>
+          <div class="bar-wrap" style="height:12px;"><div class="bar-fill ${barColor(d.usagePercent)}" style="width:${d.usagePercent}%;"></div></div>
+        </div>
+      `).join("");
+
+      const activeNet = data.network.filter(n => n.rxBytes > 0 || n.txBytes > 0);
+      document.getElementById("net").innerHTML = activeNet.length > 0 ? activeNet.map(n => `
+        <div class="network-row">
+          <span class="name">${n.name}</span>
+          <div class="stats">
+            <span class="rx">RX ${fmt(n.rxBytes)}</span>
+            <span class="tx">TX ${fmt(n.txBytes)}</span>
+            <span class="label">${n.rxPackets} pkts / ${n.txPackets} pkts</span>
+          </div>
+        </div>
+      `).join("") : '<div style="color:#666;">No active interfaces</div>';
+
+      const dockerCard = document.getElementById("docker-card");
+      const dockerData = data.docker || [];
+      if (dockerData.length > 0) {
+        dockerCard.style.display = "block";
+        document.getElementById("docker").innerHTML = `
+          <table>
+            <thead><tr><th>Name</th><th>CPU%</th><th>MEM%</th><th>Mem Usage</th><th>Net I/O</th></tr></thead>
+            <tbody>${dockerData.map(c => `
+              <tr>
+                <td style="color:#22d3ee;">${c.name}</td>
+                <td>${c.cpuPercent}</td>
+                <td>${c.memPercent}</td>
+                <td>${c.memUsage}</td>
+                <td>${c.netIo}</td>
+              </tr>
+            `).join("")}</tbody>
+          </table>
+        `;
+      } else {
+        dockerCard.style.display = "none";
+      }
+
+      document.getElementById("proc").innerHTML = `
+        <table>
+          <thead><tr><th>PID</th><th>Name</th><th>CPU%</th><th>MEM%</th><th>RSS</th></tr></thead>
+          <tbody>${data.processes.map(p => `
+            <tr>
+              <td>${p.pid}</td>
+              <td>${p.name}</td>
+              <td>${p.cpuPercent}</td>
+              <td>${p.memPercent}</td>
+              <td>${fmt(p.memRss)}</td>
+            </tr>
+          `).join("")}</tbody>
+        </table>
+      `;
+    }
+
+    function showDashboard() {
+      authOverlay.classList.remove("active");
+      dashboardEl.style.display = "block";
+      connect();
+    }
+
+    function connect() {
+      const wsUrl = apiKey
+        ? `ws://${location.host}/ws?key=${encodeURIComponent(apiKey)}`
+        : `ws://${location.host}/ws`;
+      const ws = new WebSocket(wsUrl);
+      ws.onopen = () => {
+        statusEl.className = "status connected";
+        statusEl.nextElementSibling.textContent = "Connected";
+      };
+      ws.onclose = () => {
+        statusEl.className = "status disconnected";
+        statusEl.nextElementSibling.textContent = "Disconnected — reconnecting...";
+        setTimeout(connect, 2000);
+      };
+      ws.onmessage = (e) => render(JSON.parse(e.data));
+    }
+
+    authSubmit.addEventListener("click", () => {
+      const key = authKeyInput.value.trim();
+      if (!key) return;
+      apiKey = key;
+      sessionStorage.setItem("sysmon_key", key);
+      showDashboard();
+    });
+
+    authKeyInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") authSubmit.click();
+    });
+
+    async function init() {
+      const res = await fetch("/api/auth");
+      const { authRequired } = await res.json();
+
+      if (!authRequired) {
+        apiKey = "";
+        showDashboard();
+      } else if (apiKey) {
+        showDashboard();
+      } else {
+        authOverlay.classList.add("active");
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>
