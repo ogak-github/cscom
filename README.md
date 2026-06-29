@@ -71,7 +71,20 @@ Dashboard will be available at `http://<your-server-ip>:4040`.
 Build locally, deploy to server with one command:
 
 ```bash
-./deploy.sh <host> <user>
+./deploy.sh <ssh-alias>
+```
+
+Setup `~/.ssh/config` first:
+```
+Host cscom-server
+    HostName 192.168.1.100
+    User root
+```
+
+Then deploy with one command:
+
+```bash
+./deploy.sh cscom-server
 ```
 
 This will:
