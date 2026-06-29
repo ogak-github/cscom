@@ -1,10 +1,10 @@
 #!/bin/bash
 set -e
 
-INSTALL_DIR="/opt/sysmon"
-SERVICE_NAME="sysmon"
+INSTALL_DIR="/opt/sysmon-agent"
+SERVICE_NAME="sysmon-agent"
 
-echo "=== sysmon installer ==="
+echo "=== sysmon-agent installer ==="
 
 # Install Bun
 if ! command -v bun &> /dev/null; then
@@ -56,6 +56,6 @@ echo "Dashboard: http://$(hostname -I | awk '{print $1}'):4040"
 echo "API:       http://$(hostname -I | awk '{print $1}'):4040/api/metrics"
 echo ""
 echo "To set API key:"
-echo "  Edit /etc/systemd/system/sysmon.service"
+echo "  Edit /etc/systemd/system/sysmon-agent.service"
 echo "  Add: Environment=SYSMON_KEY=your-secret-key"
-echo "  Then: sudo systemctl restart sysmon"
+echo "  Then: sudo systemctl restart sysmon-agent"

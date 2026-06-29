@@ -1,10 +1,10 @@
 #!/bin/bash
 set -e
 
-INSTALL_DIR="/opt/sysmon"
-SERVICE_NAME="sysmon"
+INSTALL_DIR="/opt/sysmon-agent"
+SERVICE_NAME="sysmon-agent"
 
-echo "=== sysmon uninstaller ==="
+echo "=== sysmon-agent uninstaller ==="
 
 # Stop and remove systemd service
 if systemctl is-active --quiet "$SERVICE_NAME" 2>/dev/null; then
@@ -31,7 +31,7 @@ fi
 
 echo ""
 echo "=== Done! ==="
-echo "sysmon has been uninstalled."
+echo "sysmon-agent has been uninstalled."
 echo ""
 echo "To also remove Bun, run:"
 echo "  rm -rf ~/.bun"

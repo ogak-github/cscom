@@ -1,4 +1,4 @@
-# sysmon
+# sysmon-agent
 
 A lightweight system monitoring agent for Linux servers. Monitors CPU, RAM, disk, network, processes, and Docker containers in real-time.
 
@@ -44,14 +44,14 @@ bun run src/transport/server.ts
 ### Quick Install (VPS)
 
 ```bash
-git clone https://github.com/ogak-github/sysmon /opt/sysmon
-cd /opt/sysmon
+git clone https://github.com/ogak-github/sysmon-agent /opt/sysmon-agent
+cd /opt/sysmon-agent
 bash setup.sh
 ```
 
 This will:
 1. Install Bun (if not present)
-2. Copy project to `/opt/sysmon`
+2. Copy project to `/opt/sysmon-agent`
 3. Install production dependencies
 4. Create and start a systemd service
 
@@ -66,8 +66,8 @@ export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
 
 # Clone and install
-git clone https://github.com/ogak-github/sysmon /opt/sysmon
-cd /opt/sysmon
+git clone https://github.com/ogak-github/sysmon-agent /opt/sysmon-agent
+cd /opt/sysmon-agent
 bun install
 
 # Run terminal mode
@@ -91,7 +91,7 @@ Environment variables (set in systemd service or `.env`):
 Edit the systemd service:
 
 ```bash
-sudo nano /etc/systemd/system/sysmon.service
+sudo nano /etc/systemd/system/sysmon-agent.service
 ```
 
 Add or modify:
@@ -103,26 +103,26 @@ Environment=SYSMON_KEY=your-secret-key
 Then restart:
 
 ```bash
-sudo systemctl restart sysmon
+sudo systemctl restart sysmon-agent
 ```
 
 ## Systemd Service
 
-The setup script creates a systemd service at `/etc/systemd/system/sysmon.service`.
+The setup script creates a systemd service at `/etc/systemd/system/sysmon-agent.service`.
 
 Useful commands:
 
 ```bash
-sudo systemctl status sysmon     # Check status
-sudo systemctl restart sysmon    # Restart
-sudo systemctl stop sysmon       # Stop
-sudo journalctl -u sysmon -f     # View logs
+sudo systemctl status sysmon-agent     # Check status
+sudo systemctl restart sysmon-agent    # Restart
+sudo systemctl stop sysmon-agent       # Stop
+sudo journalctl -u sysmon-agent -f     # View logs
 ```
 
 ## Project Structure
 
 ```
-sysmon/
+sysmon-agent/
 ├── index.ts                 # Terminal UI entry point
 ├── setup.sh                 # VPS installer script
 ├── src/
