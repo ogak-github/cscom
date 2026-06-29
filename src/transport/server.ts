@@ -10,7 +10,8 @@ const API_KEY = process.env.CSCOM_KEY || "";
 const AUTH_ENABLED = API_KEY.length > 0;
 const dockerAvailable = await isDockerAvailable();
 
-import { dashboardHtml } from "./dashboard-embed";
+import { getDashboard } from "./dashboard-macro" with { type: "macro" };
+const dashboardHtml = getDashboard();
 
 function checkAuth(req: Request): boolean {
   if (!AUTH_ENABLED) return true;

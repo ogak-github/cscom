@@ -51,9 +51,9 @@
   </style>
 </head>
 <body>
-  <div id="auth-overlay" class="active">
+  <div id="auth-overlay">
     <div class="auth-box">
-      <h2>CSCom</h2>
+      <h2>Control System Commander (cscom)</h2>
       <p>Enter API key to continue</p>
       <input type="password" id="auth-key" placeholder="API Key" autofocus>
       <button id="auth-submit">Connect</button>
@@ -62,8 +62,8 @@
   </div>
 
   <div id="dashboard" style="display:none;">
-    <h1>CSCom</h1>
-    <div class="subtitle"><span class="status disconnected" id="status"></span> Connecting...</div>
+    <h1>Control System Commander (cscom)</h1>
+    <div class="subtitle"><span class="status disconnected" id="status"></span><span id="status-text"> Connecting...</span></div>
 
     <div class="grid">
       <div class="card">
@@ -235,20 +235,30 @@
     }
 
     function connect() {
+      const proto = location.protocol === "https:" ? "wss:" : "ws:";
       const wsUrl = apiKey
-        ? `ws://${location.host}/ws?key=${encodeURIComponent(apiKey)}`
-        : `ws://${location.host}/ws`;
+        ? `${proto}//${location.host}/ws?key=${encodeURIComponent(apiKey)}`
+        : `${proto}//${location.host}/ws`;
       const ws = new WebSocket(wsUrl);
       ws.onopen = () => {
         statusEl.className = "status connected";
-        statusEl.nextElementSibling.textContent = "Connected";
+        document.getElementById("status-text").textContent = " Connected";
       };
-      ws.onclose = () => {
+      ws.onerror = () => {
         statusEl.className = "status disconnected";
-        statusEl.nextElementSibling.textContent = "Disconnected — reconnecting...";
-        setTimeout(connect, 2000);
+        document.getElementById("status-text").textContent = " Connection error";
       };
-      ws.onmessage = (e) => render(JSON.parse(e.data));
+      ws.onclose = (e) => {
+        statusEl.className = "status disconnected";
+        const msg = e.code === 1008 || e.code === 401
+          ? " Auth failed — reload to retry"
+          : " Disconnected — reconnecting...";
+        document.getElementById("status-text").textContent = msg;
+        if (msg.includes("reconnecting")) setTimeout(connect, 2000);
+      };
+      ws.onmessage = (e) => {
+        try { render(JSON.parse(e.data)); } catch (_) {}
+      };
     }
 
     authSubmit.addEventListener("click", () => {
@@ -270,11 +280,23 @@
       if (!authRequired) {
         apiKey = "";
         showDashboard();
-      } else if (apiKey) {
-        showDashboard();
-      } else {
-        authOverlay.classList.add("active");
+        return;
       }
+
+      if (apiKey) {
+        const check = await fetch("/api/metrics", {
+          headers: { "Authorization": `Bearer ${apiKey}` }
+        });
+        if (check.ok) {
+          showDashboard();
+          return;
+        }
+        apiKey = "";
+        sessionStorage.removeItem("cscom_key");
+      }
+
+      authOverlay.classList.add("active");
+      authKeyInput.focus();
     }
 
     init();

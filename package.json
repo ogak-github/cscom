@@ -7,7 +7,6 @@
     "dev": "bun run index.ts",
     "serve": "bun run src/transport/server.ts",
     "typecheck": "tsgo --noEmit",
-    "build": "bash build.sh",
     "start": "./dist/cscom",
     "start:web": "./dist/cscom-serve"
   },

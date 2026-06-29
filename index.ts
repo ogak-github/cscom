@@ -97,7 +97,7 @@ async function render() {
     lines.push(`  ${String(p.pid).padEnd(8)} ${String(p.cpuPercent).padEnd(8)} ${String(p.memPercent).padEnd(8)} ${formatBytes(p.memRss).padEnd(12)} ${p.name}`);
   }
 
-  process.stdout.write(`\x1b[2J\x1b[H${lines.join("\n")}\n`);
+  process.stdout.write(`\x1b[H${lines.join("\n")}\n\x1b[J`);
 }
 
 function makeBar(ratio: number, width: number): string {
