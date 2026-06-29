@@ -29,8 +29,28 @@ ssh ${SERVER} << 'EOF'
 sudo mkdir -p /opt/cscom
 sudo mv /tmp/cscom /tmp/cscom-serve /tmp/dashboard.html /opt/cscom/
 sudo chmod +x /opt/cscom/cscom /opt/cscom/cscom-serve
+
+if [ ! -f /etc/systemd/system/cscom.service ]; then
+  sudo tee /etc/systemd/system/cscom.service > /dev/null << 'SVC'
+[Unit]
+Description=Control System Commander (CSCom)
+After=network.target docker.service
+
+[Service]
+Type=simple
+ExecStart=/opt/cscom/cscom-serve
+Restart=always
+RestartSec=5
+Environment=PORT=4040
+Environment=CSCOM_KEY=
+
+[Install]
+WantedBy=multi-user.target
+SVC
+fi
+
 sudo systemctl daemon-reload
-sudo systemctl restart cscom
+sudo systemctl enable --now cscom
 EOF
 
 HOST=$(ssh -G ${SERVER} | grep "^hostname " | awk '{print $2}')
