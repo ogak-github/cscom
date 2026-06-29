@@ -44,7 +44,7 @@ bun run src/transport/server.ts
 ### Quick Install (VPS)
 
 ```bash
-git clone <repo-url> /opt/sysmon
+git clone https://github.com/ogak-github/sysmon /opt/sysmon
 cd /opt/sysmon
 bash setup.sh
 ```
