@@ -6,35 +6,29 @@ SERVICE_NAME="cscom"
 
 echo "=== Control System Commander (CSCom) installer ==="
 
-# Install Bun
+# Install Bun (needed for building)
 if ! command -v bun &> /dev/null; then
-  echo "[1/4] Installing Bun..."
+  echo "[1/5] Installing Bun..."
   curl -fsSL https://bun.sh/install | bash
   export BUN_INSTALL="$HOME/.bun"
   export PATH="$BUN_INSTALL/bin:$PATH"
 else
-  echo "[1/4] Bun already installed"
+  echo "[1/5] Bun already installed"
 fi
 
-# Copy project files
-echo "[2/4] Copying files to $INSTALL_DIR..."
-SRC_DIR="$(cd . && pwd -P)"
-DEST_DIR="$(cd "$INSTALL_DIR" 2>/dev/null && pwd -P || echo "")"
-if [ "$SRC_DIR" != "$DEST_DIR" ]; then
-  sudo mkdir -p "$INSTALL_DIR"
-  sudo cp -r ./* "$INSTALL_DIR/"
-  sudo chown -R "$USER:$USER" "$INSTALL_DIR"
-else
-  echo "  Skipping copy (already in $INSTALL_DIR)"
-fi
+# Build binaries
+echo "[2/5] Building binaries..."
+bun run build
 
-# Install dependencies
-echo "[3/4] Installing dependencies..."
-cd "$INSTALL_DIR"
-bun install --production
+# Install binaries
+echo "[3/5] Installing to $INSTALL_DIR..."
+sudo mkdir -p "$INSTALL_DIR"
+sudo cp dist/cscom dist/cscom-serve dist/dashboard.html "$INSTALL_DIR/"
+sudo chmod +x "$INSTALL_DIR/cscom" "$INSTALL_DIR/cscom-serve"
+sudo chown -R "$USER:$USER" "$INSTALL_DIR"
 
 # Create systemd service
-echo "[4/4] Creating systemd service..."
+echo "[4/5] Creating systemd service..."
 sudo tee /etc/systemd/system/${SERVICE_NAME}.service > /dev/null <<EOF
 [Unit]
 Description=Control System Commander (CSCom)
@@ -42,8 +36,7 @@ After=network.target docker.service
 
 [Service]
 Type=simple
-WorkingDirectory=${INSTALL_DIR}
-ExecStart=${HOME}/.bun/bin/bun run src/transport/server.ts
+ExecStart=${INSTALL_DIR}/cscom-serve
 Restart=always
 RestartSec=5
 Environment=PORT=4040
@@ -53,6 +46,8 @@ Environment=CSCOM_KEY=
 WantedBy=multi-user.target
 EOF
 
+# Enable and start
+echo "[5/5] Starting service..."
 sudo systemctl daemon-reload
 sudo systemctl enable --now ${SERVICE_NAME}
 
@@ -60,6 +55,10 @@ echo ""
 echo "=== Done! ==="
 echo "Dashboard: http://$(hostname -I | awk '{print $1}'):4040"
 echo "API:       http://$(hostname -I | awk '{print $1}'):4040/api/metrics"
+echo "Binary:    ${INSTALL_DIR}/cscom-serve"
+echo ""
+echo "Terminal mode (run locally):"
+echo "  ${INSTALL_DIR}/cscom"
 echo ""
 echo "To set API key:"
 echo "  Edit /etc/systemd/system/cscom.service"

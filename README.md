@@ -12,22 +12,31 @@ A lightweight system monitoring agent for Linux servers. Monitors CPU, RAM, disk
 - **Processes** — top processes sorted by CPU usage
 - **Docker** — container CPU%, memory, network I/O (auto-detect, hidden if no containers)
 
-## Modes
+## Build
 
-### 1. Terminal (TUI)
+Builds standalone binaries (no runtime dependencies needed on target server):
 
-Real-time dashboard rendered directly in your terminal. Refreshes every 1 second.
-
+```bash
+bun install
+bun run build
 ```
-bun run index.ts
+
+Output:
+- `dist/cscom` — Terminal UI (TUI)
+- `dist/cscom-serve` — Web server + API
+
+## Usage
+
+### Terminal (TUI)
+
+```bash
+./dist/cscom
 ```
 
-### 2. Web Dashboard + API
+### Web Dashboard
 
-Web-based dashboard with WebSocket real-time updates and REST API.
-
-```
-bun run src/transport/server.ts
+```bash
+./dist/cscom-serve
 ```
 
 - Dashboard: `http://localhost:4040`
@@ -50,31 +59,45 @@ bash setup.sh
 ```
 
 This will:
-1. Install Bun (if not present)
-2. Copy project to `/opt/cscom`
-3. Install production dependencies
+1. Install Bun (for building only)
+2. Build standalone binaries
+3. Install binaries to `/opt/cscom`
 4. Create and start a systemd service
 
 Dashboard will be available at `http://<your-server-ip>:4040`.
 
-### Manual Install
+### Binary Deploy
+
+Build locally, copy binaries to server:
 
 ```bash
-# Install Bun
-curl -fsSL https://bun.sh/install | bash
-export BUN_INSTALL="$HOME/.bun"
-export PATH="$BUN_INSTALL/bin:$PATH"
-
-# Clone and install
-git clone https://github.com/ogak-github/cscom /opt/cscom
-cd /opt/cscom
+# Local: build
 bun install
+bun run build
 
-# Run terminal mode
-bun run index.ts
+# Copy to server
+scp dist/cscom dist/cscom-serve dist/dashboard.html user@server:/opt/cscom/
 
-# Or run web server mode
-bun run src/transport/server.ts
+# On server: install service
+sudo bash -c 'cat > /etc/systemd/system/cscom.service <<EOF
+[Unit]
+Description=Control System Commander (CSCom)
+After=network.target docker.service
+
+[Service]
+Type=simple
+ExecStart=/opt/cscom/cscom-serve
+Restart=always
+RestartSec=5
+Environment=PORT=4040
+Environment=CSCOM_KEY=
+
+[Install]
+WantedBy=multi-user.target
+EOF'
+
+sudo systemctl daemon-reload
+sudo systemctl enable --now cscom
 ```
 
 ## Configuration
@@ -108,8 +131,6 @@ sudo systemctl restart cscom
 
 ## Systemd Service
 
-The setup script creates a systemd service at `/etc/systemd/system/cscom.service`.
-
 Useful commands:
 
 ```bash
@@ -136,6 +157,7 @@ cscom/
 │   └── transport/
 │       ├── server.ts        # Bun HTTP + WebSocket server
 │       └── dashboard.html   # Web dashboard UI
+├── dist/                    # Build output (binaries + dashboard.html)
 ├── package.json
 └── tsconfig.json
 ```

@@ -7,8 +7,9 @@
     "dev": "bun run index.ts",
     "serve": "bun run src/transport/server.ts",
     "typecheck": "tsgo --noEmit",
-    "build": "tsgo -p tsconfig.json",
-    "start": "bun run dist/index.js"
+    "build": "bun build --compile index.ts --outfile dist/cscom && bun build --compile src/transport/server.ts --outfile dist/cscom-serve && cp src/transport/dashboard.html dist/",
+    "start": "./dist/cscom",
+    "start:web": "./dist/cscom-serve"
   },
   "devDependencies": {
     "@types/bun": "latest",
