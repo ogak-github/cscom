@@ -29,6 +29,7 @@ ssh ${SERVER} << 'EOF'
 sudo mkdir -p /opt/cscom
 sudo mv /tmp/cscom /tmp/cscom-serve /tmp/dashboard.html /opt/cscom/
 sudo chmod +x /opt/cscom/cscom /opt/cscom/cscom-serve
+sudo ln -sf /opt/cscom/cscom /usr/local/bin/cscom
 
 if [ ! -f /etc/systemd/system/cscom.service ]; then
   sudo tee /etc/systemd/system/cscom.service > /dev/null << 'SVC'

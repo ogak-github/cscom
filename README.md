@@ -29,8 +29,10 @@ Output:
 
 ### Terminal (TUI)
 
+After install, just run:
+
 ```bash
-./dist/cscom
+cscom
 ```
 
 ### Web Dashboard
