@@ -66,7 +66,7 @@ export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
 
 # Clone and install
-git clone <repo-url> /opt/sysmon
+git clone https://github.com/ogak-github/sysmon /opt/sysmon
 cd /opt/sysmon
 bun install
 
