@@ -66,39 +66,19 @@ This will:
 
 Dashboard will be available at `http://<your-server-ip>:4040`.
 
-### Binary Deploy
+### Deploy (from local machine)
 
-Build locally, copy binaries to server:
+Build locally, deploy to server with one command:
 
 ```bash
-# Local: build
-bun install
-bun run build
-
-# Copy to server
-scp dist/cscom dist/cscom-serve dist/dashboard.html user@server:/opt/cscom/
-
-# On server: install service
-sudo bash -c 'cat > /etc/systemd/system/cscom.service <<EOF
-[Unit]
-Description=Control System Commander (CSCom)
-After=network.target docker.service
-
-[Service]
-Type=simple
-ExecStart=/opt/cscom/cscom-serve
-Restart=always
-RestartSec=5
-Environment=PORT=4040
-Environment=CSCOM_KEY=
-
-[Install]
-WantedBy=multi-user.target
-EOF'
-
-sudo systemctl daemon-reload
-sudo systemctl enable --now cscom
+./deploy.sh <host> <user>
 ```
+
+This will:
+1. Build standalone binaries (with TS7 typecheck)
+2. SCP binaries to server
+3. Install to `/opt/cscom` (uses sudo)
+4. Restart the systemd service
 
 ## Configuration
 
@@ -145,7 +125,8 @@ sudo journalctl -u cscom -f     # View logs
 ```
 cscom/
 ├── index.ts                 # Terminal UI entry point
-├── setup.sh                 # VPS installer script
+├── setup.sh                 # VPS installer (builds from source)
+├── deploy.sh                # Local deploy to server (build + scp + sudo)
 ├── src/
 │   ├── metrics/
 │   │   ├── cpu.ts           # CPU load averages and times
