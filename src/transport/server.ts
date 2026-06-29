@@ -1,4 +1,6 @@
 import os from "os";
+import { resolve, dirname } from "path";
+import { readlinkSync } from "fs";
 import { getDiskInfo } from "../metrics/disk";
 import { getActiveInterfaces } from "../metrics/network";
 import { getCpuUsagePercent, getProcessList, getSystemInfo } from "../metrics/process";
@@ -10,7 +12,13 @@ const API_KEY = process.env.CSCOM_KEY || "";
 const AUTH_ENABLED = API_KEY.length > 0;
 const dockerAvailable = await isDockerAvailable();
 
-const dashboardPath = import.meta.dir + "/dashboard.html";
+let binDir: string;
+try {
+  binDir = dirname(readlinkSync("/proc/self/exe"));
+} catch {
+  binDir = import.meta.dir;
+}
+const dashboardPath = resolve(binDir, "dashboard.html");
 
 function checkAuth(req: Request): boolean {
   if (!AUTH_ENABLED) return true;
