@@ -97,7 +97,9 @@ async function render() {
     lines.push(`  ${String(p.pid).padEnd(8)} ${String(p.cpuPercent).padEnd(8)} ${String(p.memPercent).padEnd(8)} ${formatBytes(p.memRss).padEnd(12)} ${p.name}`);
   }
 
-  process.stdout.write(`\x1b[H${lines.join("\n")}\n\x1b[J`);
+  const rows = process.stdout.rows ?? 24;
+  const visible = lines.slice(0, rows - 1);
+  process.stdout.write(`\x1b[2J\x1b[H${visible.join("\n")}\n`);
 }
 
 function makeBar(ratio: number, width: number): string {
