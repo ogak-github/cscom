@@ -18,9 +18,15 @@ fi
 
 # Copy project files
 echo "[2/4] Copying files to $INSTALL_DIR..."
-sudo mkdir -p "$INSTALL_DIR"
-sudo cp -r ./* "$INSTALL_DIR/"
-sudo chown -R "$USER:$USER" "$INSTALL_DIR"
+SRC_DIR="$(cd . && pwd -P)"
+DEST_DIR="$(cd "$INSTALL_DIR" 2>/dev/null && pwd -P || echo "")"
+if [ "$SRC_DIR" != "$DEST_DIR" ]; then
+  sudo mkdir -p "$INSTALL_DIR"
+  sudo cp -r ./* "$INSTALL_DIR/"
+  sudo chown -R "$USER:$USER" "$INSTALL_DIR"
+else
+  echo "  Skipping copy (already in $INSTALL_DIR)"
+fi
 
 # Install dependencies
 echo "[3/4] Installing dependencies..."
