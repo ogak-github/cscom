@@ -1,6 +1,4 @@
 import os from "os";
-import { resolve, dirname } from "path";
-import { readlinkSync } from "fs";
 import { getDiskInfo } from "../metrics/disk";
 import { getActiveInterfaces } from "../metrics/network";
 import { getCpuUsagePercent, getProcessList, getSystemInfo } from "../metrics/process";
@@ -12,13 +10,7 @@ const API_KEY = process.env.CSCOM_KEY || "";
 const AUTH_ENABLED = API_KEY.length > 0;
 const dockerAvailable = await isDockerAvailable();
 
-let binDir: string;
-try {
-  binDir = dirname(readlinkSync("/proc/self/exe"));
-} catch {
-  binDir = import.meta.dir;
-}
-const dashboardPath = resolve(binDir, "dashboard.html");
+import { dashboardHtml } from "./dashboard-embed";
 
 function checkAuth(req: Request): boolean {
   if (!AUTH_ENABLED) return true;
@@ -115,7 +107,7 @@ const server = Bun.serve({
     const url = new URL(req.url);
 
     if (url.pathname === "/") {
-      return new Response(Bun.file(dashboardPath), {
+      return new Response(dashboardHtml, {
         headers: { "Content-Type": "text/html; charset=utf-8" },
       });
     }
