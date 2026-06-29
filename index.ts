@@ -107,12 +107,15 @@ function makeBar(ratio: number, width: number): string {
   return `${color}${"█".repeat(filled)}\x1b[90m${"░".repeat(empty)}\x1b[0m`;
 }
 
-process.on("SIGINT", () => {
-  process.stdout.write("\x1b[?25h\n");
+function cleanup() {
+  process.stdout.write("\x1b[?1049l\x1b[?25h");
   process.exit(0);
-});
+}
 
-process.stdout.write("\x1b[?25l");
+process.on("SIGINT", cleanup);
+process.on("SIGTERM", cleanup);
+
+process.stdout.write("\x1b[?1049h\x1b[?25l");
 
 async function loop() {
   dockerAvailable = await isDockerAvailable();
